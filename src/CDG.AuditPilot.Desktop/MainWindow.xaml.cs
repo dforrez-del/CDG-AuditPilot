@@ -1,0 +1,49 @@
+using Microsoft.Win32;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Xml.Linq;
+namespace CDG.AuditPilot.Desktop;
+public record Client(Guid Id,string Name);
+public record Mission(Guid Id,Guid ClientId,string Title);
+public record Question(Guid Id,string Section,string Text,string Type);
+public record Interview(Guid Id,Guid MissionId,string Person,string Notes,DateTime CreatedUtc);
+public record Finding(Guid Id,Guid MissionId,string Description,string Evidence,int Impact,int Likelihood){public int Score=>Impact*Likelihood;}
+public record AuditAction(Guid Id,Guid MissionId,string Description,string Owner,string Status);
+public class AuditData {
+ public List<Client> Clients {get;set;}=[];
+ public List<Mission> Missions {get;set;}=[];
+ public List<Question> Questions {get;set;}=[];
+ public List<Interview> Interviews {get;set;}=[];
+ public List<Finding> Findings {get;set;}=[];
+ public List<AuditAction> Actions {get;set;}=[];
+}
+public partial class MainWindow:Window {
+ readonly string path=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"CapDigitalGestion","AuditPilot","data.json");
+ AuditData data=new(); Client? client; Mission? mission;
+ public MainWindow(){InitializeComponent();try{if(File.Exists(path))data=JsonSerializer.Deserialize<AuditData>(File.ReadAllText(path))??new();}catch(Exception ex){MessageBox.Show("Lecture impossible : "+ex.Message);}Refresh();}
+ void Save(){Directory.CreateDirectory(Path.GetDirectoryName(path)!);string tmp=path+".tmp";File.WriteAllText(tmp,JsonSerializer.Serialize(data,new JsonSerializerOptions{WriteIndented=true}));File.Move(tmp,path,true);StatusText.Text="Enregistré à "+DateTime.Now.ToString("HH:mm:ss");}
+ void Refresh(){ClientsList.ItemsSource=data.Clients.ToList();MissionsList.ItemsSource=data.Missions.Where(x=>x.ClientId==client?.Id).ToList();QuestionsGrid.ItemsSource=data.Questions.ToList();InterviewsGrid.ItemsSource=data.Interviews.Where(x=>x.MissionId==mission?.Id).ToList();FindingsGrid.ItemsSource=data.Findings.Where(x=>x.MissionId==mission?.Id).ToList();ActionsGrid.ItemsSource=data.Actions.Where(x=>x.MissionId==mission?.Id).ToList();}
+ bool RequireMission(){if(mission!=null)return true;MessageBox.Show("Sélectionnez une mission.");return false;}
+ void AddClient_Click(object s,RoutedEventArgs e){if(string.IsNullOrWhiteSpace(ClientName.Text))return;data.Clients.Add(new(Guid.NewGuid(),ClientName.Text.Trim()));ClientName.Clear();Save();Refresh();}
+ void ClientsList_SelectionChanged(object s,SelectionChangedEventArgs e){client=ClientsList.SelectedItem as Client;mission=null;Refresh();}
+ void AddMission_Click(object s,RoutedEventArgs e){if(client==null||string.IsNullOrWhiteSpace(MissionTitle.Text)){MessageBox.Show("Client et titre obligatoires.");return;}data.Missions.Add(new(Guid.NewGuid(),client.Id,MissionTitle.Text.Trim()));MissionTitle.Clear();Save();Refresh();}
+ void MissionsList_SelectionChanged(object s,SelectionChangedEventArgs e){mission=MissionsList.SelectedItem as Mission;Refresh();}
+ void ImportQuestionnaire_Click(object s,RoutedEventArgs e){var d=new OpenFileDialog{Filter="JSON|*.json"};if(d.ShowDialog()!=true)return;try{if(new FileInfo(d.FileName).Length>2000000)throw new InvalidDataException("2 Mo maximum");using var doc=JsonDocument.Parse(File.ReadAllText(d.FileName));var root=doc.RootElement;var arr=root.ValueKind==JsonValueKind.Array?root:root.GetProperty("questions");var added=new List<Question>();foreach(var q in arr.EnumerateArray()){string title=q.GetProperty("text").GetString()??"";if(string.IsNullOrWhiteSpace(title))throw new InvalidDataException("Question vide");string section=q.TryGetProperty("section",out var a)?a.GetString()??"Général":"Général";string type=q.TryGetProperty("type",out var b)?b.GetString()??"text":"text";if(!new[]{"text","number","boolean","single","multiple","rating"}.Contains(type))throw new InvalidDataException("Type inconnu : "+type);added.Add(new(Guid.NewGuid(),section,title,type));}if(added.Count==0)throw new InvalidDataException("Aucune question");data.Questions.AddRange(added);Save();Refresh();MessageBox.Show(added.Count+" questions importées");}catch(Exception ex){MessageBox.Show("Import refusé : "+ex.Message);}}
+ void SeedQuestionnaire_Click(object s,RoutedEventArgs e){foreach(var q in new[]{"Comment les factures sont-elles reçues ?","Qui valide les paiements ?","Comment les stocks sont-ils suivis ?","Quels suivis sont réalisés dans Excel ?","Comment sont traités les écarts ?"})data.Questions.Add(new(Guid.NewGuid(),"Organisation des flux",q,"text"));Save();Refresh();}
+ void AddInterview_Click(object s,RoutedEventArgs e){if(!RequireMission()||string.IsNullOrWhiteSpace(InterviewPerson.Text))return;data.Interviews.Add(new(Guid.NewGuid(),mission!.Id,InterviewPerson.Text.Trim(),InterviewNotes.Text.Trim(),DateTime.UtcNow));InterviewPerson.Clear();InterviewNotes.Clear();Save();Refresh();}
+ void AddFinding_Click(object s,RoutedEventArgs e){if(!RequireMission())return;if(!int.TryParse(Impact.Text,out int i)||i<1||i>5||!int.TryParse(Likelihood.Text,out int p)||p<1||p>5){MessageBox.Show("Scores de 1 à 5 obligatoires.");return;}if(string.IsNullOrWhiteSpace(FindingText.Text))return;data.Findings.Add(new(Guid.NewGuid(),mission!.Id,FindingText.Text.Trim(),string.IsNullOrWhiteSpace(FindingEvidence.Text)?"preuve absente":FindingEvidence.Text.Trim(),i,p));FindingText.Clear();FindingEvidence.Clear();Save();Refresh();}
+ void AddAction_Click(object s,RoutedEventArgs e){if(!RequireMission()||string.IsNullOrWhiteSpace(ActionText.Text))return;data.Actions.Add(new(Guid.NewGuid(),mission!.Id,ActionText.Text.Trim(),ActionOwner.Text.Trim(),"À planifier"));ActionText.Clear();ActionOwner.Clear();Save();Refresh();}
+ async void RunAi_Click(object s,RoutedEventArgs e){if(AiConsent.IsChecked!=true){MessageBox.Show("Consentement obligatoire.");return;}string? key=Environment.GetEnvironmentVariable("AUDITPILOT_API_KEY");if(string.IsNullOrWhiteSpace(key)){MessageBox.Show("Clé API absente.");return;}if(!Uri.TryCreate(ApiUrl.Text,UriKind.Absolute,out var uri)||uri.Scheme!="https"){MessageBox.Show("HTTPS obligatoire.");return;}if(string.IsNullOrWhiteSpace(AiPrompt.Text))return;try{using var http=new HttpClient{Timeout=TimeSpan.FromSeconds(90)};http.DefaultRequestHeaders.Authorization=new AuthenticationHeaderValue("Bearer",key);var payload=JsonSerializer.Serialize(new{model=ApiModel.Text,messages=new[]{new{role="system",content="Assistant d'audit. Ne jamais inventer des preuves. Distinguer hypothèses et faits."},new{role="user",content=AiPrompt.Text}}});using var response=await http.PostAsync(uri,new StringContent(payload,Encoding.UTF8,"application/json"));response.EnsureSuccessStatusCode();using var doc=JsonDocument.Parse(await response.Content.ReadAsStringAsync());AiResult.Text="PROPOSITION IA — À VALIDER\n\n"+doc.RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString();}catch(Exception ex){MessageBox.Show("Erreur IA : "+ex.Message);}}
+ void ExportReport_Click(object s,RoutedEventArgs e){if(!RequireMission())return;var d=new SaveFileDialog{Filter="HTML|*.html",FileName="Rapport-Audit.html"};if(d.ShowDialog()!=true)return;string H(string x)=>System.Net.WebUtility.HtmlEncode(x);var b=new StringBuilder("<!doctype html><html lang='fr'><meta charset='utf-8'><body><h1>Rapport d'audit : "+H(mission!.Title)+"</h1>");foreach(var f in data.Findings.Where(x=>x.MissionId==mission.Id))b.Append("<h2>Constat</h2><p>"+H(f.Description)+"</p><p>Preuve : "+H(f.Evidence)+" — Score : "+f.Score+"</p>");b.Append("<h2>Plan d'actions</h2><ul>");foreach(var a in data.Actions.Where(x=>x.MissionId==mission.Id))b.Append("<li>"+H(a.Description)+" — "+H(a.Owner)+"</li>");File.WriteAllText(d.FileName,b.Append("</ul></body></html>").ToString());}
+ void ExportActions_Click(object s,RoutedEventArgs e){if(!RequireMission())return;var d=new SaveFileDialog{Filter="CSV|*.csv",FileName="Plan-actions.csv"};if(d.ShowDialog()!=true)return;string C(string x)=>"\""+x.Replace("\"","\"\"")+"\"";var rows=new List<string>{"Action;Responsable;Statut"};rows.AddRange(data.Actions.Where(x=>x.MissionId==mission!.Id).Select(x=>string.Join(";",C(x.Description),C(x.Owner),C(x.Status))));File.WriteAllText(d.FileName,"\uFEFF"+string.Join("\r\n",rows));}
+ void ExportDiagram_Click(object s,RoutedEventArgs e){if(!RequireMission())return;var d=new SaveFileDialog{Filter="SVG|*.svg",FileName="Flux.svg"};if(d.ShowDialog()!=true)return;var steps=data.Actions.Where(x=>x.MissionId==mission!.Id).Take(12).Select(x=>x.Description).ToList();if(steps.Count==0)steps=["Collecte","Analyse","Validation","Restitution"];XNamespace ns="http://www.w3.org/2000/svg";var svg=new XElement(ns+"svg",new XAttribute("width",860),new XAttribute("height",steps.Count*90+20));for(int i=0;i<steps.Count;i++){int y=i*90+10;svg.Add(new XElement(ns+"rect",new XAttribute("x",20),new XAttribute("y",y),new XAttribute("width",800),new XAttribute("height",65),new XAttribute("rx",8),new XAttribute("fill","#e8f1f8"),new XAttribute("stroke","#2a5674")));svg.Add(new XElement(ns+"text",new XAttribute("x",35),new XAttribute("y",y+38),new XAttribute("font-size",15),(i+1)+". "+(steps[i].Length>85?steps[i][..85]+"…":steps[i])));if(i<steps.Count-1)svg.Add(new XElement(ns+"path",new XAttribute("d",$"M420 {y+65} v25"),new XAttribute("stroke","#2a5674")));}new XDocument(svg).Save(d.FileName);}
+}
