@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "title": "Exemple à adapter — Réception et validation documentaire",
+  "nodes": [
+    {
+      "id": "reception",
+      "label": "Réception des documents fournisseur",
+      "service": "Administration"
+    },
+    {
+      "id": "validation",
+      "label": "Validation documentaire",
+      "service": "Achats"
+    },
+    {
+      "id": "transmission",
+      "label": "Transmission au service comptable",
+      "service": "Administration"
+    },
+    {
+      "id": "complement",
+      "label": "Demande de complément",
+      "service": "Achats"
+    }
+  ],
+  "edges": [
+    {
+      "from": "reception",
+      "to": "validation",
+      "label": "Facture et justificatifs"
+    },
+    {
+      "from": "validation",
+      "to": "transmission",
+      "label": "Documents complets"
+    },
+    {
+      "from": "validation",
+      "to": "complement",
+      "label": "Information manquante"
+    },
+    {
+      "from": "complement",
+      "to": "validation",
+      "label": "Complément reçu"
+    }
+  ]
+}

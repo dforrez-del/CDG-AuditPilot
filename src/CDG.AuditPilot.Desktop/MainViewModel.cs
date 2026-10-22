@@ -9,6 +9,7 @@ public partial class MainViewModel(IAuditWorkspace workspace) : ObservableObject
  public ObservableCollection<Client> Clients { get; } = [];
  public ObservableCollection<Mission> Missions { get; } = [];
  [ObservableProperty] private Client? selectedClient;
+ [ObservableProperty] private Mission? selectedMission;
  [ObservableProperty] private string clientName = "";
  [ObservableProperty] private string clientEmail = "";
  [ObservableProperty] private string missionReference = "";

@@ -7,7 +7,7 @@
 <TextBlock Text="Clients et missions" Foreground="#60D4DF" FontSize="17" Margin="0,16"/>
 <TextBlock Text="Étape 1 · Socle local" Foreground="White" TextWrapping="Wrap"/>
 <TextBlock Text="Conseil organisationnel et digitalisation" Foreground="#B9CADA" Margin="0,24" TextWrapping="Wrap"/>
-<TextBlock Text="Aucun envoi cloud. IA non activée." Foreground="#B9CADA" TextWrapping="Wrap"/>
+<TextBlock Text="IA facultative par API, avec autorisation avant envoi." Foreground="#B9CADA" TextWrapping="Wrap"/>
 </StackPanel></Border>
 <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="26" IsEnabled="{Binding IsIdle}">
 <TextBlock Text="Votre espace de travail" FontSize="28" FontWeight="Bold" Foreground="#0B2742"/>
@@ -31,7 +31,8 @@
 <Button Content="Enregistrer la _mission" Command="{Binding CreateMissionCommand}" HorizontalAlignment="Left"/>
 </StackPanel></GroupBox>
 <TextBlock Text="Missions du client" FontSize="20" FontWeight="SemiBold" Margin="0,22,0,10"/>
-<DataGrid ItemsSource="{Binding Missions}" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" Height="180" HeadersVisibility="Column">
+<DataGrid ItemsSource="{Binding Missions}" SelectedItem="{Binding SelectedMission}" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" Height="180" HeadersVisibility="Column">
 <DataGrid.Columns><DataGridTextColumn Header="Référence" Binding="{Binding Reference}" Width="160"/><DataGridTextColumn Header="Intitulé" Binding="{Binding Title}" Width="*"/><DataGridTextColumn Header="Statut" Binding="{Binding Status}" Width="140"/></DataGrid.Columns></DataGrid>
+<WrapPanel><Button Content="Ouvrir le questionnaire de la mission" Click="Questionnaire_Click" Margin="0,8,12,8"/><Button Content="Schémas de flux" Click="Flows_Click"/></WrapPanel>
 <TextBlock Text="{Binding StoragePath, StringFormat=Dossier local : {0}}" FontSize="11" Foreground="#526576" Margin="0,16" TextWrapping="Wrap"/>
 </StackPanel></ScrollViewer></DockPanel></Window>
