@@ -1,0 +1,28 @@
+name: Windows build and tests
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet restore CDG.AuditPilot.sln
+      - run: dotnet build CDG.AuditPilot.sln -c Release --no-restore -m:1
+      - run: dotnet test tests/CDG.AuditPilot.Tests -c Release --no-build --logger trx --results-directory TestResults
+      - run: dotnet publish src/CDG.AuditPilot.Desktop -c Release -r win-x64 --self-contained true -o artifacts/win-x64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AuditPilot-Windows-x64-preview
+          path: artifacts/win-x64/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: TestResults
+          path: TestResults/
