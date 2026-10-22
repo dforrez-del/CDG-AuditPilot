@@ -1,0 +1,19 @@
+{
+  "questions": [
+    {
+      "section": "Achats et fournisseurs",
+      "text": "Comment sont réceptionnées les factures ?",
+      "type": "text"
+    },
+    {
+      "section": "Stocks",
+      "text": "Un inventaire physique est-il réalisé ?",
+      "type": "boolean"
+    },
+    {
+      "section": "Contrôle interne",
+      "text": "Évaluez la maîtrise du risque de rupture de traçabilité",
+      "type": "rating"
+    }
+  ]
+}
