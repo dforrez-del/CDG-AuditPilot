@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "title": "Audit des flux achats et stocks",
+  "sections": [
+    {
+      "title": "Achats et fournisseurs",
+      "questions": [
+        {
+          "id": "ACH-01",
+          "label": "Qui valide une commande fournisseur et dans quel outil ?",
+          "type": "longText",
+          "required": true,
+          "options": []
+        },
+        {
+          "id": "ACH-02",
+          "label": "Existe-t-il une procédure écrite de réception des factures ?",
+          "type": "yesNo",
+          "required": true,
+          "options": []
+        }
+      ]
+    },
+    {
+      "title": "Stocks et services commerciaux",
+      "questions": [
+        {
+          "id": "STK-01",
+          "label": "Comment les services commerciaux vérifient-ils la disponibilité des produits ?",
+          "type": "singleChoice",
+          "required": true,
+          "options": [
+            "Logiciel partagé",
+            "Fichier Excel",
+            "Demande au dépôt",
+            "Autre"
+          ]
+        },
+        {
+          "id": "STK-02",
+          "label": "Quels outils servent au suivi des mouvements ?",
+          "type": "multipleChoice",
+          "required": false,
+          "options": [
+            "Logiciel de stocks",
+            "Excel",
+            "Papier",
+            "Autre"
+          ]
+        },
+        {
+          "id": "STK-03",
+          "label": "Sur une échelle de 0 à 5, quelle est la fiabilité perçue de la mise à jour des stocks ?",
+          "type": "scale0to5",
+          "required": false,
+          "options": []
+        }
+      ]
+    }
+  ]
+}
