@@ -1,0 +1,36 @@
+# CDG AuditPilot — guide du candidat V1
+
+## Installation et données
+
+Le paquet candidat s’installe pour le compte Windows courant, sans droits administrateur. Il inclut le runtime .NET x64. Les données sont dans `%LOCALAPPDATA%\CapDigitalGestion\AuditPilot`. La désinstallation conserve ce dossier. Fermer l’application avant une mise à jour et réaliser une sauvegarde manuelle.
+
+Les fonctions métier sont locales. L’IA seule nécessite une connexion. La base SQLite n’est pas chiffrée ; utiliser les protections du compte Windows et du disque. Ne pas partager le dossier sur un lecteur réseau. Un seul processus peut être ouvert pour le compte courant.
+
+## Parcours
+
+1. Créer un client dans Clients et missions, le sélectionner, créer sa mission puis la sélectionner.
+2. Utiliser Mission pour préciser référence, périmètre et statut.
+3. La Bibliothèque permet d’importer, modifier le JSON, enregistrer une nouvelle version et l’exporter. Les anciens fichiers ne sont pas écrasés. Les modèles initiaux sont des points de départ courts à enrichir.
+4. Entretiens détaillés : importer le JSON exporté, renseigner interlocuteur, observations et réponses. Cocher Non applicable si nécessaire. Autosauvegarde toutes les trois secondes lorsque les réponses sont valides. Le message indique les erreurs ; un brouillon invalide n’est pas enregistré automatiquement.
+5. L’onglet Entretiens de la fenêtre principale permet également de conserver des notes libres.
+6. Preuves : indiquer une origine puis importer les fichiers. Une copie locale est conservée ; le fichier source reste intact. Vérifier l’empreinte ou exporter une copie. Limite 100 Mo par fichier.
+7. Ajouter un constat, le sélectionner puis Réviser le constat. Renseigner critère, cause, conséquence et preuves. La validation humaine enregistre le nom du compte Windows.
+8. Ajouter une action, la sélectionner puis Modifier l’action pour compléter échéance, priorité, charge, coût et contrôle d’efficacité.
+9. Schémas modifiables : créer/importer des étapes et liaisons, générer, enregistrer. Les images PNG et versions SVG sont conservées avec la mission. Les images PNG sont incluses dans les rapports.
+10. Word / PDF / Excel : choisir le format. Les constats non validés portent la mention BROUILLON. L’Excel conserve les valeurs commençant par = comme texte, sans formules exécutables.
+
+## IA
+
+Dans Paramètres IA / rapport, enregistrer la clé : elle est chiffrée par DPAPI pour votre compte Windows. Dans Entretiens détaillés, renseigner l’URL complète HTTPS compatible `/chat/completions` et l’identifiant de modèle fourni par le prestataire. Lire le contenu exact avant chaque autorisation. Les pièces jointes brutes ne sont pas envoyées. Les textes ne sont pas anonymisés automatiquement.
+
+Les résultats sont des propositions modifiables, non validées. Ils ne sont pas intégrés automatiquement dans un rapport final. Vérifier les affirmations et les sources, puis formaliser les constats et actions retenus. Les coûts éventuels sont ceux du fournisseur API.
+
+## Sauvegardes
+
+Sauvegarder produit une archive AES-GCM protégée par un mot de passe d’au moins 12 caractères. Conserver ce mot de passe hors du poste : il n’est pas récupérable. Les clés API sont exclues. Une sauvegarde automatique est créée toutes les cinq minutes ; les dix dernières sont conservées dans le dossier voisin `AuditPilot-AutoBackups`. Leur clé est protégée pour le compte Windows courant : elles ne remplacent pas une sauvegarde manuelle exportable.
+
+Restaurer vérifie le chiffrement, les empreintes et l’intégrité SQLite avant remplacement. Le dossier courant est conservé sous un nom `.before-restore-*`. L’application se ferme ; la relancer. Restaurer auto utilise la clé locale et exige le même compte Windows.
+
+## Limites
+
+Consulter `etat-developpement.md` avant toute utilisation de production. Le candidat n’est pas signé. La séparation des rôles, certains éléments du cahier des charges et les contrôles de recette ne sont pas encore tous validés.

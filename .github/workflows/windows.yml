@@ -1,23 +1,63 @@
-name: Windows build
+name: Windows build, tests and installer
 on:
   push:
-    branches: [main]
+  pull_request:
   workflow_dispatch:
+permissions:
+  contents: read
 jobs:
-  build:
+  verify:
     runs-on: windows-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - name: Restore
-        run: dotnet restore CDG.AuditPilot.sln
+      - name: Restore and audit dependencies
+        run: dotnet restore CDG.AuditPilot.sln -p:NuGetAudit=true -p:NuGetAuditMode=all -p:WarningsAsErrors="NU1901;NU1902;NU1903;NU1904"
       - name: Build
-        run: dotnet build CDG.AuditPilot.sln -c Release --no-restore
-      - name: Publish Windows x64
-        run: dotnet publish src/CDG.AuditPilot.Desktop/CDG.AuditPilot.Desktop.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish
+        run: dotnet build CDG.AuditPilot.sln -c Release --no-restore -m:1
+      - name: Unit and integration tests
+        run: dotnet test tests/CDG.AuditPilot.Tests -c Release --no-build --logger trx --results-directory TestResults
+      - name: Publish Windows x64 with runtime
+        run: dotnet publish src/CDG.AuditPilot.Desktop -c Release -r win-x64 --self-contained true -o artifacts/win-x64
+      - name: Windows UI smoke test
+        shell: pwsh
+        run: |
+          $env:AUDITPILOT_TEST_ROOT = Join-Path $env:RUNNER_TEMP 'AuditPilot-Smoke'
+          $process = Start-Process artifacts/win-x64/CDG.AuditPilot.Desktop.exe -ArgumentList '--smoke-test' -PassThru
+          if (-not $process.WaitForExit(90000)) { $process.Kill(); throw 'Smoke test timeout' }
+          if ($process.ExitCode -ne 0) { throw "Smoke test failed: $($process.ExitCode)" }
+          Copy-Item "$env:AUDITPILOT_TEST_ROOT/smoke-*" TestResults/ -Force
+      - name: Build installer
+        shell: pwsh
+        run: |
+          $compiler = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $compiler)) { choco install innosetup --yes --no-progress }
+          & $compiler installer/AuditPilot.iss
+          if ($LASTEXITCODE -ne 0) { throw 'Installer build failed' }
+          Get-FileHash artifacts/installer/*.exe -Algorithm SHA256 | Format-List | Out-File artifacts/installer/SHA256.txt
+      - name: Silent installation check
+        shell: pwsh
+        run: |
+          $dest = Join-Path $env:RUNNER_TEMP 'AuditPilot-Installed'
+          $setup = Start-Process artifacts/installer/CDG-AuditPilot-Setup-x64.exe -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /DIR=`"$dest`"" -Wait -PassThru
+          if ($setup.ExitCode -ne 0 -or -not (Test-Path "$dest/CDG.AuditPilot.Desktop.exe")) { throw 'Installation failed' }
+          $env:AUDITPILOT_TEST_ROOT = Join-Path $env:RUNNER_TEMP 'AuditPilot-Installed-Smoke'
+          $app = Start-Process "$dest/CDG.AuditPilot.Desktop.exe" -ArgumentList '--smoke-test' -PassThru
+          if (-not $app.WaitForExit(90000)) { $app.Kill(); throw 'Installed smoke timeout' }
+          if ($app.ExitCode -ne 0) { throw 'Installed application failed' }
       - uses: actions/upload-artifact@v4
         with:
-          name: AuditPilot-Windows-x64-preview
-          path: publish/
+          name: AuditPilot-Windows-x64-candidate
+          path: artifacts/installer/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AuditPilot-Windows-x64-portable
+          path: artifacts/win-x64/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: TestResults
+          path: TestResults/

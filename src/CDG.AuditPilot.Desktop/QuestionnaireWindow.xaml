@@ -1,0 +1,21 @@
+<Window x:Class="CDG.AuditPilot.Desktop.QuestionnaireWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Questionnaire et analyse IA" Width="1050" Height="800" MinWidth="800" MinHeight="600" WindowStartupLocation="CenterOwner">
+<DockPanel Margin="20">
+<TextBlock DockPanel.Dock="Bottom" Text="{Binding Status}" TextWrapping="Wrap" Margin="0,10"/>
+<StackPanel DockPanel.Dock="Top" IsEnabled="{Binding IsIdle}">
+<WrapPanel><Button Content="Importer un questionnaire JSON" Click="Import_Click" Margin="0,0,16,8"/><Button Content="Enregistrer les réponses" Click="Save_Click"/></WrapPanel>
+<ComboBox x:Name="SessionList" ItemsSource="{Binding Sessions}" DisplayMemberPath="Title" SelectionChanged="Session_Changed" Margin="0,0,0,12"/>
+<TextBox x:Name="Interviewee" ToolTip="Interlocuteur et fonction" TextChanged="MetadataChanged" Margin="0,4"/><TextBox x:Name="Observations" ToolTip="Observations générales" TextChanged="MetadataChanged" Margin="0,4"/></StackPanel>
+<TabControl IsEnabled="{Binding IsIdle}">
+<TabItem Header="Questions et réponses"><ScrollViewer VerticalScrollBarVisibility="Auto"><ItemsControl ItemsSource="{Binding Answers}"><ItemsControl.ItemTemplate><DataTemplate>
+<StackPanel Margin="12"><TextBlock Text="{Binding Label}" FontWeight="SemiBold" TextWrapping="Wrap"/><TextBlock Text="{Binding Hint}" Foreground="#526576" TextWrapping="Wrap"/><TextBox Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="60" MaxLength="10000"/><CheckBox Content="Non applicable" IsChecked="{Binding NotApplicable}"/><TextBox Text="{Binding Comment, UpdateSourceTrigger=PropertyChanged}" ToolTip="Observation / référence de preuve" MaxLength="10000"/></StackPanel>
+</DataTemplate></ItemsControl.ItemTemplate></ItemsControl></ScrollViewer></TabItem>
+<TabItem Header="Analyse par API"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="12">
+<TextBlock Text="Connexion compatible Chat Completions. La clé des paramètres est protégée par Windows. Les réponses ne sont pas anonymisées automatiquement : vérifiez l’aperçu avant l’envoi." TextWrapping="Wrap"/>
+<Label Content="URL complète du service HTTPS"/><TextBox Text="{Binding Endpoint, UpdateSourceTrigger=PropertyChanged}"/>
+<Label Content="Identifiant du modèle"/><TextBox Text="{Binding Model, UpdateSourceTrigger=PropertyChanged}"/>
+<Label Content="Clé API — peut être remplacée pour cette session"/><PasswordBox x:Name="ApiKey" Padding="8"/>
+<Button Content="Prévisualiser les données et autoriser l’analyse" Click="Analyze_Click"/>
+<TextBlock Text="Proposition IA à vérifier — aucune validation automatique" FontWeight="Bold" Margin="0,10"/>
+<TextBox Text="{Binding Result, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="250" VerticalScrollBarVisibility="Auto"/>
+</StackPanel></ScrollViewer></TabItem>
+</TabControl></DockPanel></Window>
