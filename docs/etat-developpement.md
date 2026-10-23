@@ -29,3 +29,9 @@ La CI Windows doit encore être exécutée et son résultat lu. Elle compile, te
 - PDFsharp 6.2.0 MIT épinglé ; la migration vers les nouvelles versions nécessite une décision de licence.
 
 Prochaine action : lire la CI de cette branche et corriger les erreurs Windows / installateur, puis poursuivre les écarts avant publication finale. Ne pas annoncer la V1 complète.
+
+## Correction Windows du 23 octobre 2026
+
+Le run 39799037413 a compilé puis exécuté 34 tests : 32 réussis, 2 en échec. L’exception concernait le fichier temporaire `cdg-backup-*/auditpilot.db` au calcul SHA-256, et non une copie directe de la base active. `Dispose` laissait le handle SQLite temporaire dans le pool.
+
+Correction : `Pooling=false` sur source et destination de BackupDatabase, source ouverte en lecture seule, fermeture effective avant le hachage et la compression. Suppression du vidage global des pools dans Create, désormais inutile. Test supplémentaire : deux sauvegardes successives avec une connexion source ouverte, puis restauration et lecture. Résultat du nouveau pipeline à vérifier avant validation.

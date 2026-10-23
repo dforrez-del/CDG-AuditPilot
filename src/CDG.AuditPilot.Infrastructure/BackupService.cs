@@ -12,13 +12,22 @@ public static class BackupService {
   try{
    var files=Directory.GetFiles(root,"*",SearchOption.AllDirectories).Where(f=>!Path.GetFileName(f).EndsWith("-wal")&&!Path.GetFileName(f).EndsWith("-shm")&&!Path.GetFileName(f).EndsWith(".db")&&!Path.GetFileName(f).Equals("secrets.bin")&&!f.EndsWith(".tmp")).ToArray();
    foreach(var f in files){if((File.GetAttributes(f)&FileAttributes.ReparsePoint)!=0)throw new InvalidDataException("Lien symbolique interdit.");var dest=Path.Combine(work,Path.GetRelativePath(root,f));Directory.CreateDirectory(Path.GetDirectoryName(dest)!);File.Copy(f,dest);}
-   using(var source=new SqliteConnection(new SqliteConnectionStringBuilder{DataSource=Path.Combine(root,"auditpilot.db")}.ToString()))using(var dest=new SqliteConnection(new SqliteConnectionStringBuilder{DataSource=Path.Combine(work,"auditpilot.db")}.ToString())){source.Open();dest.Open();source.BackupDatabase(dest);}
+   // These handles must really close before hashing/packing the temporary database.
+   // Disposing a pooled connection returns it to the pool and can retain a Windows file lock.
+   using(var source=new SqliteConnection(new SqliteConnectionStringBuilder {
+    DataSource=Path.Combine(root,"auditpilot.db"), Mode=SqliteOpenMode.ReadOnly, Pooling=false
+   }.ToString()))
+   using(var dest=new SqliteConnection(new SqliteConnectionStringBuilder {
+    DataSource=Path.Combine(work,"auditpilot.db"), Pooling=false
+   }.ToString())) {
+    source.Open();dest.Open();source.BackupDatabase(dest);
+   }
    var hashes=Directory.GetFiles(work,"*",SearchOption.AllDirectories).ToDictionary(f=>Path.GetRelativePath(work,f).Replace('\\','/'),f=>Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(f))));
    File.WriteAllText(Path.Combine(work,"manifest.json"),JsonSerializer.Serialize(hashes));
    using var zip=new MemoryStream();ZipFile.CreateFromDirectory(work,zip);if(zip.Length>512_000_000)throw new InvalidDataException("Sauvegarde supérieure à 512 Mo.");
    var salt=RandomNumberGenerator.GetBytes(16);var nonce=RandomNumberGenerator.GetBytes(12);var key=Rfc2898DeriveBytes.Pbkdf2(password,salt,210000,HashAlgorithmName.SHA256,32);var plain=zip.ToArray();var cipher=new byte[plain.Length];var tag=new byte[16];
    try{using var aes=new AesGcm(key,16);aes.Encrypt(nonce,plain,cipher,tag,Magic);using(var file=File.Create(destination+".tmp")){file.Write(Magic);file.Write(salt);file.Write(nonce);file.Write(tag);file.Write(cipher);}File.Move(destination+".tmp",destination,true);}finally{CryptographicOperations.ZeroMemory(key);CryptographicOperations.ZeroMemory(plain);}
-  }finally{SqliteConnection.ClearAllPools();Directory.Delete(work,true);}
+  }finally{Directory.Delete(work,true);}
  }
  public static void Restore(string archive,string root,string password){
   if(new FileInfo(archive).Length>512_000_060)throw new InvalidDataException("Archive trop volumineuse.");

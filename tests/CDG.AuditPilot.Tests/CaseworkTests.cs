@@ -20,5 +20,15 @@ public sealed class CaseworkTests:IDisposable {
  [Fact]public void ValidationRequiresReviewer(){var data=Seed();data.Findings[0]=data.Findings[0] with{Validated=true};Assert.Throws<ArgumentException>(data.Validate);}
  [Fact]public void BackupRoundTripPreservesDatabaseAndEvidence(){var data=Seed();var source=Path.Combine(root,"source.txt");File.WriteAllText(source,"Preuve témoin");data.Evidence.Add(new EvidenceStore(root).Import(data.Missions[0].Id,source,"Fournisseur"));new CaseworkStore(Db).Save(data);var archive=root+".cdgbak";var restored=root+"-restored";try{BackupService.Create(root,archive,"mot-de-passe-test");BackupService.Restore(archive,restored,"mot-de-passe-test");var result=new CaseworkStore(Path.Combine(restored,"auditpilot.db")).Load();Assert.Single(result.Findings);Assert.True(new EvidenceStore(restored).Verify(Assert.Single(result.Evidence)));}finally{Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();if(Directory.Exists(restored))Directory.Delete(restored,true);File.Delete(archive);}}
  [Fact]public void WrongPasswordNeverChangesLiveData(){Seed();var archive=root+".cdgbak";try{BackupService.Create(root,archive,"mot-de-passe-test");Assert.Throws<System.Security.Cryptography.AuthenticationTagMismatchException>(()=>BackupService.Restore(archive,root,"mauvais-mot-de-passe"));Assert.Single(new CaseworkStore(Db).Load().Clients);}finally{File.Delete(archive);}}
+ [Fact]public void RepeatedBackupsWorkWhileLiveDatabaseConnectionRemainsOpen(){
+  Seed();var archive=root+"-live.cdgbak";var restored=root+"-live-restored";
+  try {
+   using var live=new Microsoft.Data.Sqlite.SqliteConnection(new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder{DataSource=Db}.ToString());live.Open();
+   for(int i=0;i<2;i++)BackupService.Create(root,archive,"mot-de-passe-test");
+   using var command=live.CreateCommand();command.CommandText="SELECT COUNT(*) FROM Clients";Assert.Equal(1L,(long)command.ExecuteScalar()!);
+   BackupService.Restore(archive,restored,"mot-de-passe-test");
+   Assert.Single(new CaseworkStore(Path.Combine(restored,"auditpilot.db")).Load().Clients);
+  }finally{Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();if(Directory.Exists(restored))Directory.Delete(restored,true);File.Delete(archive);}
+ }
  public void Dispose(){Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();Directory.Delete(root,true);}
 }
