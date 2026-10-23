@@ -14,7 +14,7 @@
 <Label Content="URL complète du service HTTPS"/><TextBox Text="{Binding Endpoint, UpdateSourceTrigger=PropertyChanged}"/>
 <Label Content="Identifiant du modèle"/><TextBox Text="{Binding Model, UpdateSourceTrigger=PropertyChanged}"/>
 <Label Content="Clé API — peut être remplacée pour cette session"/><PasswordBox x:Name="ApiKey" Padding="8"/>
-<Button Content="Prévisualiser les données et autoriser l’analyse" Click="Analyze_Click"/>
+<CheckBox x:Name="MaskContacts" Content="Masquer courriels et téléphones courants (vérifier l’aperçu ; les noms ne sont pas masqués)"/><Button Content="Prévisualiser les données et autoriser l’analyse" Click="Analyze_Click"/>
 <TextBlock Text="Proposition IA à vérifier — aucune validation automatique" FontWeight="Bold" Margin="0,10"/>
 <TextBox Text="{Binding Result, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="250" VerticalScrollBarVisibility="Auto"/>
 </StackPanel></ScrollViewer></TabItem>

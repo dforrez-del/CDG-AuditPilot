@@ -95,12 +95,12 @@ public partial class QuestionnaireWindow : Window
    if (string.IsNullOrWhiteSpace(ApiKey.Password)) throw new ArgumentException("Saisissez votre clé API.");
    using var http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(120) };
    var provider = new CompatibleChatProvider(http);
-   var prepared = provider.Prepare(snapshot, vm.Endpoint, vm.Model);
+   var prepared = provider.PrepareStructured(snapshot, vm.Endpoint, vm.Model,MaskContacts.IsChecked==true);
    if (!ConfirmTransmission(prepared)) { vm.Status = "Envoi annulé. Aucune donnée transmise."; return; }
    await SaveCurrentAsync(snapshot);
    vm.Status = "Analyse en cours… délai maximal de 120 secondes.";
    using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(120));
-   var result = await provider.AnalyzeAsync(prepared, ApiKey.Password, true, timeout.Token);
+   var result = await provider.AnalyzeStructuredAsync(prepared,snapshot, ApiKey.Password, true, timeout.Token);
    snapshot.Analyses.Add(result); vm.Result = result.Response; dirty = true;
    await SaveCurrentAsync(snapshot); vm.Status = "Proposition IA enregistrée avec les sources transmises, le fournisseur, le modèle et la date d’autorisation.";
   }

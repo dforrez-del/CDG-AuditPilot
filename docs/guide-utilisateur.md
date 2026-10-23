@@ -34,3 +34,12 @@ Restaurer vérifie le chiffrement, les empreintes et l’intégrité SQLite avan
 ## Limites
 
 Consulter `etat-developpement.md` avant toute utilisation de production. Le candidat n’est pas signé. La séparation des rôles, certains éléments du cahier des charges et les contrôles de recette ne sont pas encore tous validés.
+
+
+## Interface rc2
+
+Le tableau de bord présente les missions actives, clients, constats à valider et actions ouvertes. Ses compteurs couvrent tous les dossiers. Double-cliquez une mission pour l’activer. Le bandeau « Dossier actif » rappelle toujours le contexte de travail.
+
+Utilisez le menu à gauche pour avancer dans la mission. Les boutons au-dessus du contenu proposent uniquement les opérations de l’écran courant. Dans Questionnaires, ouvrez la bibliothèque puis l’entretien guidé. Dans Constats, sélectionnez une ligne puis « Réviser le constat sélectionné » pour associer les preuves et valider la cotation. Dans Plan d’actions, sélectionnez une action pour compléter son échéance et ses dépendances.
+
+Les paramètres, sauvegardes et restaurations se trouvent en bas du menu. Une restauration remplace le dossier ouvert et conserve son ancienne copie ; l’export d’une mission est une sauvegarde de ce seul dossier, pas une fusion de dossiers.

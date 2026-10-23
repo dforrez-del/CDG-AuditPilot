@@ -40,3 +40,14 @@ Validation du correctif `596b968` : [run Windows 39905200125](https://github.com
 
 Installateur candidat : https://github.com/dforrez-del/CDG-AuditPilot/actions/runs/39905200125/artifacts/12480790679
 Résultats et captures : https://github.com/dforrez-del/CDG-AuditPilot/actions/runs/39905200125/artifacts/12481035468
+
+
+## Reprise ergonomique du 23 octobre 2026 — candidat rc2
+
+Référence visuelle : capture MicroPilot fournie par le propriétaire. Conservation du socle WPF et des données ; menu latéral bleu nuit, accents turquoise, tableau de bord calculé sur les dossiers, dossier actif permanent, commandes contextuelles, colonnes métier explicites et suppression de la barre globale encombrée. Les six écrans historiques restent accessibles. Aucun contenu fictif dans le tableau de bord normal.
+
+Compléments : historique des instantanés avec utilisateur Windows, recherche globale, export chiffré d’une mission, analyse IA structurée avec références vérifiées et masquage optionnel courriels/téléphones. Ce masquage ne constitue pas une anonymisation complète. Contacts/sites, seuils et dépendances sont implémentés ; ils nécessitent encore une recette métier approfondie. L’éditeur de bibliothèque reste JSON.
+
+Validation locale de cette révision : compilation Release sans avertissement ni erreur ; 38/38 tests réussis. Windows, installation et captures : résultats à consigner après la CI. Le précédent résultat Windows 35/35 ne valide pas cette nouvelle interface.
+
+Prochaine action : contrôler le pipeline rc2 et ses captures réelles, corriger toute anomalie et livrer le candidat. Les rôles séparés, règles conditionnelles, signature de code et recette métier complète restent ouverts. Ne pas qualifier ce candidat de V1 complète.

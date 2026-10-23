@@ -25,6 +25,7 @@ public sealed class CaseworkStore(string databasePath)
    string json=JsonSerializer.Serialize(data);
    int count=db.Database.ExecuteSqlInterpolated($"UPDATE WorkspaceStates SET Payload={json}, Revision={data.Revision} WHERE Id=1 AND Revision={revision}");
    if(count==0){if(revision!=0)throw new InvalidOperationException("Le dossier a été modifié par une autre session.");db.Database.ExecuteSqlInterpolated($"INSERT INTO WorkspaceStates(Id,Revision,Payload) VALUES(1,{data.Revision},{json})");}
+   db.Database.ExecuteSqlInterpolated($"INSERT INTO WorkspaceRevisions(SavedUtc,Actor,Payload) VALUES({DateTime.UtcNow.ToString("O")},{Environment.UserName},{json})");
    tx.Commit();
   }catch {data.Revision=revision;throw;}
  }

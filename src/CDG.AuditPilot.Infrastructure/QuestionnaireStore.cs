@@ -18,6 +18,8 @@ public sealed class QuestionnaireStore(string databasePath) : IQuestionnaireStor
   QuestionnaireFormat.ValidateSession(session);
   await using var db = Open();
   if (await db.InterviewDocuments.AnyAsync(x => x.SessionId == session.Id && x.MissionId != session.MissionId)) throw new ArgumentException("Session associée à une autre mission.");
+  var previous=await db.InterviewDocuments.AsNoTracking().Where(x=>x.SessionId==session.Id).ToListAsync();
+  if(previous.Count>0){var original=JsonSerializer.Deserialize<InterviewSession>(previous[0].Payload,QuestionnaireFormat.Json)!;if(JsonSerializer.Serialize(original.Questionnaire,QuestionnaireFormat.Json)!=JsonSerializer.Serialize(session.Questionnaire,QuestionnaireFormat.Json))throw new ArgumentException("La version du questionnaire d’un entretien est figée. Créez un nouvel entretien.");}
   db.InterviewDocuments.Add(new InterviewDocument { MissionId = session.MissionId, SessionId = session.Id, Payload = JsonSerializer.Serialize(session, QuestionnaireFormat.Json) });
   db.AuditEvents.Add(new AuditEvent { EntityId = session.Id, Operation = "Interview.SnapshotSaved" });
   await db.SaveChangesAsync();
