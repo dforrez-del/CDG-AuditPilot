@@ -21,7 +21,7 @@ public partial class MainWindow
         var index = Tabs.SelectedIndex;
         if (index < 0 || index >= titles.Length) return;
         PageTitle.Text = titles[index]; PageSubtitle.Text = subtitles[index];
-        foreach (var button in Navigation.Children.OfType<Button>())
+        foreach (var button in Navigation.Children.OfType<Button>().Append(SettingsNavigation))
         {
             bool active = button.Tag?.ToString() == index.ToString();
             button.Background = active ? new SolidColorBrush(Color.FromRgb(39,59,83)) : Brushes.Transparent;
