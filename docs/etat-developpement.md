@@ -35,3 +35,8 @@ Prochaine action : lire la CI de cette branche et corriger les erreurs Windows /
 Le run 39799037413 a compilé puis exécuté 34 tests : 32 réussis, 2 en échec. L’exception concernait le fichier temporaire `cdg-backup-*/auditpilot.db` au calcul SHA-256, et non une copie directe de la base active. `Dispose` laissait le handle SQLite temporaire dans le pool.
 
 Correction : `Pooling=false` sur source et destination de BackupDatabase, source ouverte en lecture seule, fermeture effective avant le hachage et la compression. Suppression du vidage global des pools dans Create, désormais inutile. Test supplémentaire : deux sauvegardes successives avec une connexion source ouverte, puis restauration et lecture. Résultat du nouveau pipeline à vérifier avant validation.
+
+Validation du correctif `596b968` : [run Windows 39905200125](https://github.com/dforrez-del/CDG-AuditPilot/actions/runs/39905200125), terminé avec succès le 23 octobre 2026. 35 tests réussis, 0 échec, dont les deux tests initialement défaillants et le test de sauvegardes successives avec connexion source ouverte. Compilation, publication x64, parcours WPF automatisé, création de l’installateur Inno Setup, installation silencieuse et parcours après installation réussis. Deux avertissements non bloquants (NU1510 et xUnit2029) subsistent. Ce succès valide le correctif et la chaîne de packaging, pas tous les écarts fonctionnels de la V1 listés ci-dessus.
+
+Installateur candidat : https://github.com/dforrez-del/CDG-AuditPilot/actions/runs/39905200125/artifacts/12480790679
+Résultats et captures : https://github.com/dforrez-del/CDG-AuditPilot/actions/runs/39905200125/artifacts/12481035468
