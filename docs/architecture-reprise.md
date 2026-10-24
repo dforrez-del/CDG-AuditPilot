@@ -14,3 +14,14 @@ Publication : `dotnet publish src/CDG.AuditPilot.Desktop -c Release -r win-x64 -
 Le workflow Windows inclut un smoke test WPF isolé via --smoke-test et AUDITPILOT_TEST_ROOT, puis ISCC et installation silencieuse.
 
 Dépendances de rapport : OpenXML 3.3.0, PDFsharp 6.2.0 (MIT dans le package), Pkcs 10.0.13. Les versions suivantes de PDFsharp changent de licence. La police PDF est Arial sur Windows, DejaVu Sans pour les tests Linux. Aucun service de conversion cloud ni installation Office requise.
+
+
+## Interface rc2 et traçabilité
+
+`MainWindow.Shell.cs` gère les titres, la navigation, les commandes contextuelles et les compteurs calculés à partir d’AuditData. Les six contenus historiques gardent leurs contrôles et gestionnaires ; les pages Tableau de bord et Paramètres complètent le même TabControl, dont les en-têtes sont remplacés par le menu latéral. `MainWindow.Modules.cs` conserve les opérations métier et les dialogues. Les styles partagés sont dans App.xaml.
+
+La migration WorkspaceRevisions ajoute des instantanés JSON horodatés avec le nom du compte Windows à chaque sauvegarde du dossier. Cet historique n’est pas un journal inviolable et ne remplace pas des rôles séparés. Les révisions sont conservées sans purge automatique à ce stade.
+
+L’adaptateur IA structuré demande un objet JSON et vérifie sa forme, ses tailles et ses identifiants de questions sources avant de présenter un brouillon. Une référence de question ne prouve pas la véracité de la proposition. Le masquage optionnel couvre les courriels et certains numéros français ; les noms et autres données sensibles restent à vérifier dans l’aperçu.
+
+Le smoke test vérifie également les compteurs du tableau de bord, le dossier actif, la navigation et les colonnes métier explicites. Les captures sont produites depuis WPF sur le runner Windows ; elles ne sont pas des maquettes.

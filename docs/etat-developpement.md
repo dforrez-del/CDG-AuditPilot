@@ -13,11 +13,11 @@ Base examinée : `main` au commit d8ea284 et branche `codex/socle-clients-missio
 
 Migration du JSON historique sans suppression de l’original ; conservation des dossiers SQLite existants ; sauvegardes transactionnelles et contrôle de révision ; bibliothèque de questionnaires JSON à versions immuables ; entretiens détaillés et autosauvegarde ; preuves copiées et vérifiées SHA-256 ; rattachement aux constats et revue humaine ; édition des actions et missions ; clés API DPAPI ; sauvegardes AES-GCM manuelles et automatiques ; restauration en dossier intermédiaire avec manifeste ; exports DOCX, PDF, XLSX ; diagrammes PNG/SVG avec inclusion des PNG conservés dans les rapports.
 
-## Livraison non acquise
+## État initial de livraison (historique)
 
 La CI Windows doit encore être exécutée et son résultat lu. Elle compile, teste, lance un parcours WPF automatisé, produit des captures et rapports, construit un installateur Inno Setup x64 puis teste son installation silencieuse. Aucun installateur n’est déclaré validé avant ces contrôles.
 
-## Écarts restant à lever
+## Écarts identifiés à la reprise (historique)
 
 - Contrôles visuels des captures Windows et des rapports avec images.
 - Signature de code : aucun certificat de signature disponible ; paquet candidat non signé.
@@ -48,6 +48,26 @@ Référence visuelle : capture MicroPilot fournie par le propriétaire. Conserva
 
 Compléments : historique des instantanés avec utilisateur Windows, recherche globale, export chiffré d’une mission, analyse IA structurée avec références vérifiées et masquage optionnel courriels/téléphones. Ce masquage ne constitue pas une anonymisation complète. Contacts/sites, seuils et dépendances sont implémentés ; ils nécessitent encore une recette métier approfondie. L’éditeur de bibliothèque reste JSON.
 
-Validation locale de cette révision : compilation Release sans avertissement ni erreur ; 38/38 tests réussis. Windows, installation et captures : résultats à consigner après la CI. Le précédent résultat Windows 35/35 ne valide pas cette nouvelle interface.
+Validation locale de cette révision : compilation Release sans avertissement ni erreur ; 39/39 tests réussis, y compris le refus de champs IA explicitement nuls. Windows, installation et captures : résultats à consigner après la CI. Le précédent résultat Windows 35/35 ne valide pas cette nouvelle interface.
 
 Prochaine action : contrôler le pipeline rc2 et ses captures réelles, corriger toute anomalie et livrer le candidat. Les rôles séparés, règles conditionnelles, signature de code et recette métier complète restent ouverts. Ne pas qualifier ce candidat de V1 complète.
+
+
+## Vérification confirmée le 24 octobre 2026 — rc2
+
+Code testé : `1f2901b70911e0be786901beb79ade35ddeb9437`.
+Pipeline du 23 octobre : https://github.com/dforrez-del/CDG-AuditPilot/actions/runs/39907521949
+
+- Build Windows : réussi, zéro erreur.
+- Tests Windows : 39 réussis, zéro échec, zéro ignoré.
+- Publication autonome Windows x64 : réussie.
+- Parcours WPF automatisé, exports et persistance : réussi.
+- Installateur Inno Setup puis installation silencieuse et lancement installé : réussis.
+- Captures WPF examinées ; menu Paramètres correctement sélectionné, largeur minimale des constats préservée. Les petites fenêtres nécessitent du défilement ; la lisibilité de tous les contenus longs reste à compléter en recette métier.
+
+Installateur : https://github.com/dforrez-del/CDG-AuditPilot/actions/runs/39907521949/artifacts/12481572036
+Résultats TRX, captures et exports : https://github.com/dforrez-del/CDG-AuditPilot/actions/runs/39907521949/artifacts/12481781092
+
+Le paquet est un candidat rc2 non signé, pas une V1 intégralement réceptionnée. Restent notamment : concepteur graphique de questionnaires et règles conditionnelles, séparation des rôles, recette complète des quatre modèles d’audit et appel IA réel. Les copies des rapports ont été produites automatiquement ; leur mise en page complète n’a pas été réceptionnée visuellement dans cette passe.
+
+Prochaine opération de développement : remplacer l’édition JSON seule de la bibliothèque par un éditeur de questions métier, tout en conservant le format importé et le versionnement existants, puis tester les reprises d’entretiens. Conserver le pipeline Windows comme contrôle de livraison.
