@@ -1,4 +1,4 @@
-#define AppVersion "1.0.0-rc3"
+#define AppVersion "1.0.0-rc4"
 [Setup]
 AppId={{E687BEA4-F704-4626-AC9A-36AC445B7DF2}
 AppName=CDG AuditPilot

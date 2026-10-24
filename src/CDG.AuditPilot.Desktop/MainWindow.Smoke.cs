@@ -8,13 +8,28 @@ using CDG.AuditPilot.Infrastructure;
 using CDG.AuditPilot.Reporting;
 namespace CDG.AuditPilot.Desktop;
 public partial class MainWindow {
+ private static void SmokeAnswerControls()
+ {
+  StackPanel Fields(AnswerEditor editor)=>(StackPanel)((StackPanel)editor.Content).Children[0];
+  foreach(var type in new[]{"yesNo","singleChoice","scale0to5","scale0to10"})
+  {
+   var model=new QuestionAnswerViewModel(new("Q","Question",type,false,type=="singleChoice"?["A","B"]:[]),"Test","");
+   var editor=new AnswerEditor{DataContext=model};var combo=(ComboBox)Fields(editor).Children[0];combo.SelectedIndex=1;
+   if(model.Value!=(string)combo.SelectedItem)throw new InvalidOperationException("Choix non transmis.");
+   model.Value="ancienne valeur invalide";if(model.Value!="ancienne valeur invalide"||string.IsNullOrEmpty(model.ValidationMessage))throw new InvalidOperationException("Ancienne valeur perdue.");
+  }
+  var multiple=new QuestionAnswerViewModel(new("M","Choix","multipleChoice",false,["A","B"]),"Test","A");var multiEditor=new AnswerEditor{DataContext=multiple};var boxes=Fields(multiEditor).Children.OfType<CheckBox>().ToArray();boxes[1].IsChecked=true;boxes[0].IsChecked=false;if(multiple.Value!="B")throw new InvalidOperationException("Choix multiples non transmis.");
+  multiple.NotApplicable=true;if(multiple.IsApplicable)throw new InvalidOperationException("Non applicable incorrect.");multiple.NotApplicable=false;
+  var date=new QuestionAnswerViewModel(new("D","Date","date",false,[]),"Test","2026-01-02");var dateEditor=new AnswerEditor{DataContext=date};var calendar=(Calendar)((Expander)Fields(dateEditor).Children[1]).Content;calendar.SelectedDate=new DateTime(2026,10,24);if(date.Value!="2026-10-24")throw new InvalidOperationException("Date non conservée au format ISO.");
+ }
  internal async Task RunSmokeAsync(){
+  SmokeAnswerControls();
   ClientName.Text="Client fictif de recette";AddClient_Click(this,new RoutedEventArgs());ClientsList.SelectedItem=data.Clients.Last();
   MissionTitle.Text="Audit stocks et documents";AddMission_Click(this,new RoutedEventArgs());MissionsList.SelectedItem=data.Missions.Last();if(mission is null||client is null)throw new InvalidOperationException("Sélection client/mission perdue.");
   InterviewPerson.Text="Responsable logistique";InterviewNotes.Text="Les écarts sont suivis dans Excel.";AddInterview_Click(this,new RoutedEventArgs());FindingText.Text="Contrôle documentaire à formaliser";FindingEvidence.Text="preuve absente";AddFinding_Click(this,new RoutedEventArgs());ActionText.Text="Formaliser le rapprochement";ActionOwner.Text="Responsable";AddAction_Click(this,new RoutedEventArgs());
-  var q=new AuditQuestionnaire(1,"Questionnaire test",[new("Stocks",[new("Q1","Qui valide ?","text",true,[])])]);var store=new QuestionnaireStore(Path.Combine(App.DataDirectory,"auditpilot.db"));await store.SaveAsync(new(Guid.NewGuid(),mission.Id,q,new(){["Q1"]="Responsable"},[]));
+  var q=new AuditQuestionnaire(1,"Questionnaire test",[new("Stocks",[new("Q1","Le contrôle est-il formalisé ?","yesNo",true,[]),new("Q2","Quels supports sont utilisés ?","multipleChoice",false,["Excel","Logiciel métier","Papier"]),new("Q3","Date du dernier contrôle","date",false,[]),new("Q4","Niveau de maîtrise","scale0to5",false,[])])]);var store=new QuestionnaireStore(Path.Combine(App.DataDirectory,"auditpilot.db"));await store.SaveAsync(new(Guid.NewGuid(),mission.Id,q,new(){["Q1"]="Oui",["Q2"]="Excel;Papier",["Q3"]="2026-10-24",["Q4"]="3"},[]));
   var library=new QuestionnaireLibraryWindow{Owner=this};library.Show();library.SmokeEditAndSave();library.UpdateLayout();await Task.Delay(150);var libraryBitmap=new RenderTargetBitmap((int)library.ActualWidth,(int)library.ActualHeight,96,96,PixelFormats.Pbgra32);libraryBitmap.Render(library);var libraryEncoder=new PngBitmapEncoder();libraryEncoder.Frames.Add(BitmapFrame.Create(libraryBitmap));using(var capture=File.Create(Path.Combine(App.DataDirectory,"smoke-library.png")))libraryEncoder.Save(capture);library.Close();
-  var window=new QuestionnaireWindow(mission,store){Owner=this};window.Show();await Task.Delay(500);window.Close();
+  var window=new QuestionnaireWindow(mission,store){Owner=this};window.Show();await Task.Delay(500);await window.SmokeResumeAsync();window.UpdateLayout();await Task.Delay(150);var interviewBitmap=new RenderTargetBitmap((int)window.ActualWidth,(int)window.ActualHeight,96,96,PixelFormats.Pbgra32);interviewBitmap.Render(window);var interviewEncoder=new PngBitmapEncoder();interviewEncoder.Frames.Add(BitmapFrame.Create(interviewBitmap));using(var capture=File.Create(Path.Combine(App.DataDirectory,"smoke-interview.png")))interviewEncoder.Save(capture);window.Close();
   var flow=new FlowWindow(mission){Owner=this};flow.Show();flow.SmokeSave();flow.Close();
   var lines=ReportExporter.Content(data,mission.Id,new(),await store.ListAsync(mission.Id));var images=Directory.GetFiles(Path.Combine(App.DataDirectory,"Missions",mission.Id.ToString("N"),"Flows"),"*.png");ReportExporter.Word(Path.Combine(App.DataDirectory,"smoke-report.docx"),lines,images);ReportExporter.Pdf(Path.Combine(App.DataDirectory,"smoke-report.pdf"),lines,images);ReportExporter.Excel(Path.Combine(App.DataDirectory,"smoke-actions.xlsx"),data.Actions);
   for(int i=0;i<Tabs.Items.Count;i++){Tabs.SelectedIndex=i;UpdateLayout();await Task.Delay(100);var bitmap=new RenderTargetBitmap((int)ActualWidth,(int)ActualHeight,96,96,PixelFormats.Pbgra32);bitmap.Render(this);var encoder=new PngBitmapEncoder();encoder.Frames.Add(BitmapFrame.Create(bitmap));using var stream=File.Create(Path.Combine(App.DataDirectory,$"smoke-tab-{i+1}.png"));encoder.Save(stream);}

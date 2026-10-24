@@ -6,7 +6,11 @@ public partial class QuestionAnswerViewModel(AuditQuestion question, string sect
 {
  public AuditQuestion Question { get; } = question;
  public string Label => $"{section} • {Question.Id} — {Question.Label}" + (Question.Required ? " *" : "");
- public string Hint => Question.Type + (Question.Options.Length > 0 ? " : " + string.Join(" ; ", Question.Options) : Question.Type == "yesNo" ? " : Oui / Non" : Question.Type == "date" ? " : AAAA-MM-JJ" : "") + (Question.Type == "multipleChoice" ? " (séparer par ;)" : "");
+ public string Hint => Question.Type switch { "yesNo"=>"Choisissez Oui ou Non.","singleChoice"=>"Choisissez une réponse.","multipleChoice"=>"Cochez les réponses pertinentes.","scale0to5"=>"Note de 0 à 5.","scale0to10"=>"Note de 0 à 10.","number"=>"Nombre au format français, par exemple 12,5.","date"=>"Date au format AAAA-MM-JJ ou sélection dans le calendrier.","longText"=>"Réponse détaillée.",_=>"Réponse courte."};
+ public bool IsApplicable => !NotApplicable;
+ public string ValidationMessage => NotApplicable ? "" : QuestionnaireFormat.ValidateAnswer(Question,Value) is string error ? error+" Valeur conservée : "+Value : "";
+ partial void OnValueChanged(string value)=>OnPropertyChanged(nameof(ValidationMessage));
+ partial void OnNotApplicableChanged(bool value){OnPropertyChanged(nameof(IsApplicable));OnPropertyChanged(nameof(ValidationMessage));}
  [ObservableProperty] private string value = answer;
  [ObservableProperty] private string comment = "";
  [ObservableProperty] private bool notApplicable;

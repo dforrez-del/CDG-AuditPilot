@@ -90,3 +90,10 @@ Installateur rc3 : https://github.com/dforrez-del/CDG-AuditPilot/actions/runs/40
 Tests, captures et exports : https://github.com/dforrez-del/CDG-AuditPilot/actions/runs/40063146531/artifacts/12547739595
 
 L’éditeur graphique remplace désormais l’édition JSON seule de la bibliothèque. La V1 complète n’est pas déclarée réceptionnée ; règles conditionnelles, rôles séparés et recette métier exhaustive restent ouverts. Prochaine opération : proposer des contrôles de réponse adaptés aux types (choix, dates, notes), en conservant les réponses et les instantanés existants, puis compléter les règles conditionnelles avec tests de reprise.
+
+
+## Évolution rc4 — 24 octobre 2026
+
+Contrôles de réponse adaptés aux types, calendrier, choix multiples par cases à cocher, notes et Oui/Non par listes. Le format chaîne des instantanés demeure inchangé. L’ouverture d’un contrôle ne réécrit pas les anciennes valeurs incompatibles ; un message les affiche. L’état Non applicable désactive les contrôles.
+
+Compilation locale : zéro erreur/avertissement. 42 tests existants réussis. Le smoke Windows est enrichi : interactions programmatiques sur listes, cases et calendrier ; conservation des valeurs invalides ; reprise de quatre réponses typées ; modification, sauvegarde et relecture en base ; capture de l’entretien. CI Windows à contrôler avant validation. Règles conditionnelles et séparation des rôles toujours ouvertes.

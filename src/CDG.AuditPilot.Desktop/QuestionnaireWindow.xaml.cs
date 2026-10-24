@@ -29,6 +29,16 @@ public partial class QuestionnaireWindow : Window
   Closing += (_, e) => { if (vm.Busy || !MayDiscard()) e.Cancel = true; };
   Closed += (_, _) => {autosave.Stop();ApiKey.Clear();};
  }
+ internal async Task SmokeResumeAsync()
+ {
+  if(vm.Sessions.Count==0)throw new InvalidOperationException("Entretien non chargé.");
+  SessionList.SelectedItem=vm.Sessions[0];
+  if(vm.Answers.Single(x=>x.Question.Id=="Q2").Value!="Excel;Papier")throw new InvalidOperationException("Réponses de reprise incorrectes.");
+  vm.Answers.Single(x=>x.Question.Id=="Q1").Value="Non";
+  await SaveCurrentAsync(Snapshot());
+  var reloaded=(await store.ListAsync(mission.Id)).Single(x=>x.Id==current!.Id);
+  if(reloaded.Answers["Q1"]!="Non"||reloaded.Answers["Q2"]!="Excel;Papier"||reloaded.Answers["Q3"]!="2026-10-24")throw new InvalidOperationException("Réponses typées non persistées.");
+ }
  private bool MayDiscard() => !dirty || MessageBox.Show(this, "Abandonner les modifications non enregistrées ?", "Questionnaire", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes;
  private InterviewSession Snapshot()
  {

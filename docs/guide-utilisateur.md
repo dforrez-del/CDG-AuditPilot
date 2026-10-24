@@ -52,3 +52,10 @@ Dans Questionnaires → Bibliothèque, créez un questionnaire ou ouvrez une ver
 « Enregistrer une version » crée un nouveau fichier, sans remplacer les versions existantes ni modifier les entretiens déjà commencés. Les identifiants des questions conservées restent stables. Les sections vides et les choix incohérents empêchent l’enregistrement. Les réponses obligatoires restent compatibles avec les brouillons incomplets ; cette case ne bloque pas la sauvegarde de l’entretien.
 
 Dans un entretien, « Choisir dans la bibliothèque » permet d’ouvrir ou de préparer un questionnaire puis « Enregistrer et utiliser » en conserve un instantané dans la mission. L’import et l’export JSON restent disponibles. Fermer ou changer de version demande confirmation lorsque le brouillon a été modifié.
+
+
+## Saisie des entretiens rc4
+
+Les questions Oui/Non, choix unique et notes proposent une liste. Les choix multiples utilisent des cases à cocher. Pour une date, saisissez AAAA-MM-JJ ou ouvrez le calendrier. Les nombres utilisent le format français (12,5). Les textes longs acceptent plusieurs lignes.
+
+Une valeur ancienne incompatible est conservée et signalée en rouge : corrigez-la ou utilisez « Effacer la réponse ». Une liste vide ne signifie pas que la valeur signalée a été supprimée. Le contrôle Non applicable désactive la saisie ; comme précédemment, une réponse non applicable est enregistrée vide. Les observations restent séparées. La sauvegarde automatique refuse les réponses incompatibles et conserve le dernier enregistrement valide.
