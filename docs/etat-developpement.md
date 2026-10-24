@@ -78,3 +78,15 @@ Prochaine opération de développement : remplacer l’édition JSON seule de la
 Éditeur visuel de questionnaires : sections et questions modifiables, ordre, neuf types de réponses, options multilignes, validation réutilisant QuestionnaireFormat, identifiants conservés, fichiers de versions créés sans écrasement, avertissement avant abandon. Sélection directe depuis un entretien, sans export/réimport obligatoire. Le format JSON v1 et les instantanés d’entretiens restent compatibles.
 
 Tests ajoutés : modification sans altération de la source, stabilité des identifiants/options, refus de sections vides et options dupliquées, ordre de sections homonymes et changement de type. Le smoke WPF crée deux versions, vérifie la première et produit une capture de l’éditeur. Résultats de compilation/CI à compléter après exécution. Les règles conditionnelles et les rôles séparés restent ouverts.
+
+
+### Validation rc3 du 24 octobre 2026
+
+Code : `78a6651bc57ab7d0dcaf081bd6fbc210735553a7`. Pipeline : https://github.com/dforrez-del/CDG-AuditPilot/actions/runs/40063146531
+
+Compilation locale finale : 0 erreur, 0 avertissement. Tests locaux et Windows : 42/42 réussis, zéro échec. Publication x64, smoke WPF, construction Inno Setup, installation silencieuse et lancement du programme installé : réussis. La capture `smoke-library.png` a été examinée : titres/dates de versions lisibles et texte révisé affiché. Le smoke crée deux versions et relit les deux fichiers pour vérifier leur indépendance. Il ne simule pas toutes les interactions clavier/souris de l’éditeur.
+
+Installateur rc3 : https://github.com/dforrez-del/CDG-AuditPilot/actions/runs/40063146531/artifacts/12548043696
+Tests, captures et exports : https://github.com/dforrez-del/CDG-AuditPilot/actions/runs/40063146531/artifacts/12547739595
+
+L’éditeur graphique remplace désormais l’édition JSON seule de la bibliothèque. La V1 complète n’est pas déclarée réceptionnée ; règles conditionnelles, rôles séparés et recette métier exhaustive restent ouverts. Prochaine opération : proposer des contrôles de réponse adaptés aux types (choix, dates, notes), en conservant les réponses et les instantanés existants, puis compléter les règles conditionnelles avec tests de reprise.
