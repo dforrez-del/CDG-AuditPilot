@@ -54,6 +54,16 @@ public partial class QuestionnaireWindow : Window
    }
   vm.Result = current.Analyses.LastOrDefault()?.Response ?? "";changing=false;dirty=false;
  }
+ private async void Library_Click(object sender, RoutedEventArgs e)
+ {
+  if(!MayDiscard())return;
+  var library=new QuestionnaireLibraryWindow(true){Owner=this};
+  if(library.ShowDialog()!=true||library.SelectedQuestionnaire is not { } questionnaire)return;
+  vm.Busy=true;
+  try{var session=new InterviewSession(Guid.NewGuid(),mission.Id,questionnaire,new(),[]);await Task.Run(()=>store.SaveAsync(session));dirty=false;vm.Sessions.Add(session);SessionList.SelectedItem=session;vm.Status="Version de bibliothèque conservée dans la mission.";}
+  catch(Exception ex){Error(ex);}
+  finally{vm.Busy=false;}
+ }
  private async void Import_Click(object sender, RoutedEventArgs e)
  {
   if (!MayDiscard()) return;

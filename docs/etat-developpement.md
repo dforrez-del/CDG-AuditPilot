@@ -71,3 +71,10 @@ Résultats TRX, captures et exports : https://github.com/dforrez-del/CDG-AuditPi
 Le paquet est un candidat rc2 non signé, pas une V1 intégralement réceptionnée. Restent notamment : concepteur graphique de questionnaires et règles conditionnelles, séparation des rôles, recette complète des quatre modèles d’audit et appel IA réel. Les copies des rapports ont été produites automatiquement ; leur mise en page complète n’a pas été réceptionnée visuellement dans cette passe.
 
 Prochaine opération de développement : remplacer l’édition JSON seule de la bibliothèque par un éditeur de questions métier, tout en conservant le format importé et le versionnement existants, puis tester les reprises d’entretiens. Conserver le pipeline Windows comme contrôle de livraison.
+
+
+## Évolution rc3 — 24 octobre 2026
+
+Éditeur visuel de questionnaires : sections et questions modifiables, ordre, neuf types de réponses, options multilignes, validation réutilisant QuestionnaireFormat, identifiants conservés, fichiers de versions créés sans écrasement, avertissement avant abandon. Sélection directe depuis un entretien, sans export/réimport obligatoire. Le format JSON v1 et les instantanés d’entretiens restent compatibles.
+
+Tests ajoutés : modification sans altération de la source, stabilité des identifiants/options, refus de sections vides et options dupliquées, ordre de sections homonymes et changement de type. Le smoke WPF crée deux versions, vérifie la première et produit une capture de l’éditeur. Résultats de compilation/CI à compléter après exécution. Les règles conditionnelles et les rôles séparés restent ouverts.

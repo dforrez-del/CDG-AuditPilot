@@ -43,3 +43,12 @@ Le tableau de bord présente les missions actives, clients, constats à valider 
 Utilisez le menu à gauche pour avancer dans la mission. Les boutons au-dessus du contenu proposent uniquement les opérations de l’écran courant. Dans Questionnaires, ouvrez la bibliothèque puis l’entretien guidé. Dans Constats, sélectionnez une ligne puis « Réviser le constat sélectionné » pour associer les preuves et valider la cotation. Dans Plan d’actions, sélectionnez une action pour compléter son échéance et ses dépendances.
 
 Les paramètres, sauvegardes et restaurations se trouvent en bas du menu. Une restauration remplace le dossier ouvert et conserve son ancienne copie ; l’export d’une mission est une sauvegarde de ce seul dossier, pas une fusion de dossiers.
+
+
+## Éditeur visuel rc3
+
+Dans Questionnaires → Bibliothèque, créez un questionnaire ou ouvrez une version. Modifiez le titre et les sections dans les cellules ; sélectionnez une section pour afficher ses questions. Les flèches changent l’ordre. Chaque question possède un libellé, un type de réponse et une case Obligatoire. Pour un choix unique ou multiple, saisissez une option par ligne dans la cellule Choix. Les autres types ne publient pas d’options.
+
+« Enregistrer une version » crée un nouveau fichier, sans remplacer les versions existantes ni modifier les entretiens déjà commencés. Les identifiants des questions conservées restent stables. Les sections vides et les choix incohérents empêchent l’enregistrement. Les réponses obligatoires restent compatibles avec les brouillons incomplets ; cette case ne bloque pas la sauvegarde de l’entretien.
+
+Dans un entretien, « Choisir dans la bibliothèque » permet d’ouvrir ou de préparer un questionnaire puis « Enregistrer et utiliser » en conserve un instantané dans la mission. L’import et l’export JSON restent disponibles. Fermer ou changer de version demande confirmation lorsque le brouillon a été modifié.

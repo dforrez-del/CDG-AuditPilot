@@ -2,7 +2,7 @@
 <DockPanel Margin="20">
 <TextBlock DockPanel.Dock="Bottom" Text="{Binding Status}" TextWrapping="Wrap" Margin="0,10"/>
 <StackPanel DockPanel.Dock="Top" IsEnabled="{Binding IsIdle}">
-<WrapPanel><Button Content="Importer un questionnaire JSON" Click="Import_Click" Margin="0,0,16,8"/><Button Content="Enregistrer les réponses" Click="Save_Click"/></WrapPanel>
+<WrapPanel><Button Content="Choisir dans la bibliothèque" Click="Library_Click"/><Button Content="Importer un questionnaire JSON" Click="Import_Click" Margin="0,0,16,8"/><Button Content="Enregistrer les réponses" Click="Save_Click"/></WrapPanel>
 <ComboBox x:Name="SessionList" ItemsSource="{Binding Sessions}" DisplayMemberPath="Title" SelectionChanged="Session_Changed" Margin="0,0,0,12"/>
 <TextBox x:Name="Interviewee" ToolTip="Interlocuteur et fonction" TextChanged="MetadataChanged" Margin="0,4"/><TextBox x:Name="Observations" ToolTip="Observations générales" TextChanged="MetadataChanged" Margin="0,4"/></StackPanel>
 <TabControl IsEnabled="{Binding IsIdle}">
