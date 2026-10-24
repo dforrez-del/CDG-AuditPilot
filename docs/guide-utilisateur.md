@@ -10,8 +10,8 @@ Les fonctions métier sont locales. L’IA seule nécessite une connexion. La ba
 
 1. Créer un client dans Clients et missions, le sélectionner, créer sa mission puis la sélectionner.
 2. Utiliser Mission pour préciser référence, périmètre et statut.
-3. La Bibliothèque permet d’importer, modifier le JSON, enregistrer une nouvelle version et l’exporter. Les anciens fichiers ne sont pas écrasés. Les modèles initiaux sont des points de départ courts à enrichir.
-4. Entretiens détaillés : importer le JSON exporté, renseigner interlocuteur, observations et réponses. Cocher Non applicable si nécessaire. Autosauvegarde toutes les trois secondes lorsque les réponses sont valides. Le message indique les erreurs ; un brouillon invalide n’est pas enregistré automatiquement.
+3. La Bibliothèque permet de créer et modifier visuellement les sections et questions, d’importer/exporter du JSON et d’enregistrer une nouvelle version. Les anciens fichiers ne sont pas écrasés. Les modèles initiaux sont des points de départ courts à enrichir.
+4. Entretiens détaillés : choisir un questionnaire dans la bibliothèque ou importer un fichier JSON, puis renseigner interlocuteur, observations et réponses. Cocher Non applicable si nécessaire. Autosauvegarde toutes les trois secondes lorsque les réponses sont valides. Le message indique les erreurs ; un brouillon invalide n’est pas enregistré automatiquement.
 5. L’onglet Entretiens de la fenêtre principale permet également de conserver des notes libres.
 6. Preuves : indiquer une origine puis importer les fichiers. Une copie locale est conservée ; le fichier source reste intact. Vérifier l’empreinte ou exporter une copie. Limite 100 Mo par fichier.
 7. Ajouter un constat, le sélectionner puis Réviser le constat. Renseigner critère, cause, conséquence et preuves. La validation humaine enregistre le nom du compte Windows.
