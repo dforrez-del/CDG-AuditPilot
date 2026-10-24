@@ -1,0 +1,1 @@
+<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup></PropertyGroup><ItemGroup><ProjectReference Include="../CDG.AuditPilot.Domain/CDG.AuditPilot.Domain.csproj" /></ItemGroup></Project>

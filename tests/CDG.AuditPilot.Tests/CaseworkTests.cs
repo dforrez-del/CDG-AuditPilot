@@ -1,0 +1,34 @@
+using System.Text.Json;
+using CDG.AuditPilot.Application;
+using CDG.AuditPilot.Domain;
+using CDG.AuditPilot.Infrastructure;
+using Xunit;
+namespace CDG.AuditPilot.Tests;
+public sealed class CaseworkTests:IDisposable {
+ readonly string root=Path.Combine(Path.GetTempPath(),"auditpilot-test-"+Guid.NewGuid().ToString("N"));
+ string Db=>Path.Combine(root,"auditpilot.db");
+ public CaseworkTests(){Directory.CreateDirectory(root);new AuditWorkspace(Db).InitializeAsync().GetAwaiter().GetResult();}
+ AuditData Seed(){var c=new Client{Name="Client fictif"};var m=new Mission{ClientId=c.Id,Title="Flux stocks",Reference="M-TEST"};var data=new AuditData{Clients=[c],Missions=[m],Findings=[new(Guid.NewGuid(),m.Id,"Contrôle absent","preuve absente",3,4)],Actions=[new(Guid.NewGuid(),m.Id,"Formaliser","Responsable","À planifier")]};new CaseworkStore(Db).Save(data);return data;}
+ [Fact]public void DataSurvivesReopening(){var data=Seed();var loaded=new CaseworkStore(Db).Load();Assert.Equal(data.Missions[0].Id,loaded.Missions[0].Id);Assert.Equal(12,Assert.Single(loaded.Findings).Score);Assert.Single(loaded.Actions);}
+ [Fact]public void StaleSaveIsRejectedWithoutLosingData(){Seed();var a=new CaseworkStore(Db).Load();var b=new CaseworkStore(Db).Load();a.Actions.Clear();new CaseworkStore(Db).Save(a);Assert.Throws<InvalidOperationException>(()=>new CaseworkStore(Db).Save(b));Assert.Empty(new CaseworkStore(Db).Load().Actions);}
+ [Fact]public void JsonMigrationRetainsOriginalAndIsIdempotent(){var client=new Client{Name="Ancien client"};var data=new AuditData{Clients=[client],Missions=[new(){ClientId=client.Id,Title="Ancienne mission"}]};var path=Path.Combine(root,"data.json");File.WriteAllText(path,JsonSerializer.Serialize(data));var store=new CaseworkStore(Db);store.ImportLegacy(path);store.ImportLegacy(path);Assert.Single(store.Load().Clients);Assert.Single(store.Load().Missions);Assert.Equal(File.ReadAllText(path),File.ReadAllText(path+".before-sqlite"));}
+ [Fact]public async Task ExistingQuestionnairesRemainAvailable(){var data=Seed();var q=QuestionnaireFormat.Parse("""{"schemaVersion":1,"title":"Flux","sections":[{"title":"Section","questions":[{"id":"Q1","label":"Qui valide ?","type":"text","required":true,"options":[]}]}]}""");var session=new InterviewSession(Guid.NewGuid(),data.Missions[0].Id,q,new(){["Q1"]="Responsable"},[]);await new QuestionnaireStore(Db).SaveAsync(session);new CaseworkStore(Db).Save(data);Assert.Equal("Responsable",Assert.Single(await new QuestionnaireStore(Db).ListAsync(data.Missions[0].Id)).Answers["Q1"]);}
+ [Fact]public void EvidenceTamperingIsDetected(){var data=Seed();var source=Path.Combine(root,"source.txt");File.WriteAllText(source,"Justificatif");var store=new EvidenceStore(root);var e=store.Import(data.Missions[0].Id,source,"Entretien");Assert.True(store.Verify(e));File.AppendAllText(store.Resolve(e.StoredRelativePath),"altéré");Assert.False(store.Verify(e));Assert.Throws<InvalidDataException>(()=>store.Export(e,Path.Combine(root,"copie.txt")));}
+ [Theory][InlineData("../outside")][InlineData("/outside")]
+ public void EvidenceCannotEscapeManagedStorage(string path)=>Assert.Throws<InvalidDataException>(()=>new EvidenceStore(root).Resolve(path));
+ [Fact]public void CrossMissionEvidenceIsRejected(){var data=Seed();var m=new Mission{ClientId=data.Clients[0].Id,Reference="OTHER",Title="Other"};data.Missions.Add(m);var e=new Evidence(Guid.NewGuid(),m.Id,"file","hash",1,DateTimeOffset.UtcNow,"source","file");data.Evidence.Add(e);data.Findings[0]=data.Findings[0] with{EvidenceIds=[e.Id]};Assert.Throws<ArgumentException>(data.Validate);}
+ [Fact]public void ValidationRequiresReviewer(){var data=Seed();data.Findings[0]=data.Findings[0] with{Validated=true};Assert.Throws<ArgumentException>(data.Validate);}
+ [Fact]public void BackupRoundTripPreservesDatabaseAndEvidence(){var data=Seed();var source=Path.Combine(root,"source.txt");File.WriteAllText(source,"Preuve témoin");data.Evidence.Add(new EvidenceStore(root).Import(data.Missions[0].Id,source,"Fournisseur"));new CaseworkStore(Db).Save(data);var archive=root+".cdgbak";var restored=root+"-restored";try{BackupService.Create(root,archive,"mot-de-passe-test");BackupService.Restore(archive,restored,"mot-de-passe-test");var result=new CaseworkStore(Path.Combine(restored,"auditpilot.db")).Load();Assert.Single(result.Findings);Assert.True(new EvidenceStore(restored).Verify(Assert.Single(result.Evidence)));}finally{Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();if(Directory.Exists(restored))Directory.Delete(restored,true);File.Delete(archive);}}
+ [Fact]public void WrongPasswordNeverChangesLiveData(){Seed();var archive=root+".cdgbak";try{BackupService.Create(root,archive,"mot-de-passe-test");Assert.Throws<System.Security.Cryptography.AuthenticationTagMismatchException>(()=>BackupService.Restore(archive,root,"mauvais-mot-de-passe"));Assert.Single(new CaseworkStore(Db).Load().Clients);}finally{File.Delete(archive);}}
+ [Fact]public void RepeatedBackupsWorkWhileLiveDatabaseConnectionRemainsOpen(){
+  Seed();var archive=root+"-live.cdgbak";var restored=root+"-live-restored";
+  try {
+   using var live=new Microsoft.Data.Sqlite.SqliteConnection(new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder{DataSource=Db}.ToString());live.Open();
+   for(int i=0;i<2;i++)BackupService.Create(root,archive,"mot-de-passe-test");
+   using var command=live.CreateCommand();command.CommandText="SELECT COUNT(*) FROM Clients";Assert.Equal(1L,(long)command.ExecuteScalar()!);
+   BackupService.Restore(archive,restored,"mot-de-passe-test");
+   Assert.Single(new CaseworkStore(Path.Combine(restored,"auditpilot.db")).Load().Clients);
+  }finally{Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();if(Directory.Exists(restored))Directory.Delete(restored,true);File.Delete(archive);}
+ }
+ public void Dispose(){Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();Directory.Delete(root,true);}
+}
